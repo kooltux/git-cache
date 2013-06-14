@@ -1,7 +1,7 @@
 #!/bin/bash
 
-error() { echo "ERROR(gitcache): $*" >&2; exit 1; }
-info() { echo "INFO(gitcache): $*" >&2; }
+error() { echo "ERROR(gitcache-server): $*" >&2; exit 1; }
+info() { echo "INFO(gitcache-server): $*" >&2; }
 
 [[ -r ~/.gitcache-server.conf ]] && . ~/.gitcache-server.conf
 
