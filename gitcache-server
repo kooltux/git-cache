@@ -1,7 +1,9 @@
 #!/bin/bash
 
-error() { echo "ERROR(gitcd): $*" >&2; exit 1; }
-info() { echo "INFO(gitcd): $*" >&2; }
+error() { echo "ERROR(gitcache): $*" >&2; exit 1; }
+info() { echo "INFO(gitcache): $*" >&2; }
+
+[[ -r ~/.gitcache-server.conf ]] && . ~/.gitcache-server.conf
 
 if [[ "$1" != "--clone" ]]; then
 	shift $(($# - 1))
@@ -29,35 +31,35 @@ else
     error "Bad uri $uri"
 fi
 
-ROOTCACHEDIR=~/gitcachedir
+[[ -z "$GIT_CACHE_DIR" ]] && error "GIT_CACHE_DIR is not defined"
 
-if [[ ! -d $ROOTCACHEDIR ]]; then
-    mkdir -p $ROOTCACHEDIR || error "can't create $ROOTCACHEDIR"
+if [[ ! -d $GIT_CACHE_DIR ]]; then
+    mkdir -p $GIT_CACHE_DIR || error "can't create $GIT_CACHE_DIR"
 fi
-cd $ROOTCACHEDIR
+cd $GIT_CACHE_DIR
 
 ip=$(dig +short $domain)
 [[ -z "$ip" ]] && error "can't resolve ip for $domain"
 
 if [[ ! -d $ip ]]; then
-    mkdir -p $ip || error "can't create $ROOTCACHEDIR/$ip"
+    mkdir -p $ip || error "can't create $(pwd)/$ip"
 fi
 
 ln -sf $ip $domain
 
-gcdir=$ROOTCACHEDIR/$domain/${project%.git}.git
+gcdir=$(pwd)/$domain/${project%.git}.git
 if [[ ! -d $gcdir ]]; then
     dir=$(dirname $gcdir)
     [[ -d $dir ]] || mkdir -p $dir || error "can't create directory $dir"
     cd $dir
     edir="$(basename $gcdir)"
-    if [[ -n "$GIT_CACHE_SERVER_CHAIN" ]]; then
-	export GIT_CACHE_SERVER="$GIT_CACHE_SERVER_CHAIN"
-	info "chain-cloning $uri into $gcdir through $GIT_CACHE_SERVER"
-	git-cache-clone "$uri" "$edir"
+    if [[ -n "$GIT_CACHE_SERVER_PRIMARY" ]]; then
+		export GIT_CACHE_SERVER="$GIT_CACHE_SERVER_PRIMARY"
+		info "chain-cloning $uri into $gcdir through $GIT_CACHE_SERVER"
+		git-cclone "$uri" "$edir" --mirror || error "chain-cloning failure"
     else
-	info "cloning $uri into $gcdir"
-	git clone --mirror "$uri" "$edir" >&2 || error "cloning failure"
+		info "cloning $uri into $gcdir"
+		git clone --mirror "$uri" "$edir" >&2 || error "cloning failure"
     fi
 else
     cd $gcdir

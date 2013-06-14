@@ -3,6 +3,8 @@
 error() { echo "ERROR(git-cache-recover): $*" >&2; exit 1; }
 info() { echo "INFO(git-cache-recover): $*" >&2; }
 
+[[ -r ~/.gitcache.conf ]] && . ~/.gitcache.conf
+
 repo="$(git remote -v | awk '$1=="origin" && $3=="(push)"{print $2}')"
 
 cat << EOC
@@ -26,12 +28,12 @@ select action in REMOVE RECOVER; do
 	    info "recovering cache for $repo"
 	    [[ -z "$GIT_CACHE_SERVER" ]] && error "variable GIT_CACHE_SERVER undefined"
 	    info "asking $GIT_CACHE_SERVER a cache for $repo"
-	    crepo=$(ssh "$GIT_CACHE_SERVER" gitcd --clone "$repo")
+	    crepo=$(ssh "$GIT_CACHE_SERVER" gitcache-server --clone "$repo")
 	    [[ -z "$crepo" ]] && error "can't get a cache"
 	    info "init of git $dir"
 	    git remote set-url origin "$crepo"
 	    git remote set-url --push origin "$repo"
-	    git config remote.origin.uploadpack gitcd
+	    git config remote.origin.uploadpack gitcache-server
 	    info "done"
 	    exit 0
 	    ;;
