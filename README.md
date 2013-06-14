@@ -48,7 +48,14 @@ Installing the client scripts
 As user, put the scripts 'git-cclone' and 'git-crecover' in your
 PATH.
 
-Create the file **~/.gitcache.conf** and edit it to put the 
+For example:
+<pre>
+$ git clone https://github.com/kooltux/git-cache.git
+$ ln -s git-cache/git-cclone ~/bin/
+$ ln -s git-cache/git-crecover ~/bin
+</pre>
+
+Create the file (or copy git-cache/gitcache.conf) **~/.gitcache.conf** and edit it to put the 
 definition of the variable **GIT_CACHE_SERVER** as in the example below:
 
 <pre>
@@ -57,7 +64,7 @@ GIT_CACHE_SERVER=XXXX
 
 where *XXXX* stands for **git@proxy** or **me@my.company.com** .
 
-Refer to installation of the cache server to get full understanding of what have
+Refer to installation of the cache server to get full understanding of what has
 to be set.
 
 **NOTE:** you can also define the variable **GIT_CACHE_SERVER** in your profile 
@@ -106,29 +113,25 @@ with 'git-crecover' or 'git crecover'. It will ask you what to do: REMOVE or REC
 Installation of the cache server
 --------------------------------
 
-
 Choose the machine and the account on it that will be used to store cached repositories
 and run the server script.
 
-
-Log on the machine, clone the repo and link 'gitcd' in a directory referenced in $PATH
+Log on the machine, clone the repo and link 'gitcache-server' in a directory referenced in $PATH
 
 <pre>
 $ ssh user@hostname 
 
 $ git clone https://github.com/kooltux/git-cache.git
 
-$ ln -s git-cache/bin/gitcd ~/bin/
+$ ln -s git-cache/gitcache-server ~/bin/
+
+$ cp git-cache/gitcache-server.conf ~/.gitcache-server.conf
+
 </pre>
 
-Log on a client machine, then again, install git-cache
-
-<pre>
-$ git clone https://github.com/kooltux/git-cache.git
-
-$ ln -s git-cache/bin/git-cache-clone ~/bin/
-$ ln -s git-cache/bin/git-cache-recover ~/bin/
-</pre>
+Edit the ~/.gitcache-server.conf file and ajust the variables:
+* GIT_CACHE_DIR : the cache directory where all git repos will be stored
+* GIT_CACHE_SERVER_PRIMARY : (optional) primary cache server
 
 
 Usage

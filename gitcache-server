@@ -5,6 +5,8 @@ info() { echo "INFO(gitcache-server): $*" >&2; }
 
 [[ -r ~/.gitcache-server.conf ]] && . ~/.gitcache-server.conf
 
+[[ $# -eq 0 ]] && error "Invalid arguments."
+
 if [[ "$1" != "--clone" ]]; then
 	shift $(($# - 1))
 	info "going to directory $1"
