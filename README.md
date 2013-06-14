@@ -55,10 +55,13 @@ definition of the variable **GIT_CACHE_SERVER** as in the example below:
 GIT_CACHE_SERVER=XXXX
 </pre>
 
-where *XXXX* stands for **git@proxy** or **me@my.company.com**.
+where *XXXX* stands for **git@proxy** or **me@my.company.com** .
 
 Refer to installation of the cache server to get full understanding of what have
 to be set.
+
+**NOTE:** you can also define the variable **GIT_CACHE_SERVER** in your profile 
+or rc files (.profile or .bashrc or .zshrc or ....)
 
 Usage on the client
 -------------------
@@ -79,8 +82,25 @@ The effect of the command is:
 - clone the cached git;
 - configure the cloned project to push on original git server and to fetch on cache.
 
-The client can also use the command 'git-crecover' (that is also 'git crecover').
+Example:
+<pre>
+% git cclone git@github.com:kooltux/git-cache.git git-cache
+% cd git-cache
+% git remote -v
+</pre>
 
+The client can also use the command 'git-crecover' (that is also 'git crecover').
+This command can either recover for a cache repository that was removed from the
+cache server or it can merely make a cache entry for an existing git clone (in other
+it inserts a fetching cache for a repository that was clone in a standard way -without
+cache-).
+
+'git-crecover' is interactive. Go to the directory of the cloned repository and call it
+with 'git-crecover' or 'git crecover'. It will ask you what to do: REMOVE or RECOVER.
+
+**REMOVE:** remove any reference to any caching of git.
+
+**RECOVER:** insert the git cache references and ensure that the cached repository exists.
 
 
 Installation of the cache server
