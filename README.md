@@ -3,6 +3,34 @@ git-cache
 
 Git extension to cache upstream repos on a local server
 
+<pre>
+       Figure 1: basic principle
+       -------------------------
+
+          +---------------+
+          |  workstation  |
+          +---v-------^---+
+              |       |
+              |       |fetch
+              |       |
+              |   +---^-------+
+          push|   | git-cache |
+              |   +---^-------+
+              |       |
+              |       |fetch
+              |       |
+          +---v-------^---+
+          |  git server   |
+          +---------------+
+</pre>
+
+Audience
+--------
+
+These scripts are for teams working on some git repositories
+staying on external sites. Using it allow to reduce the external 
+bandwidth used by git fetchs.
+
 Installation
 ------------
 
@@ -35,3 +63,49 @@ $ ln -s git-cache/bin/git-cache-recover ~/bin/
 
 Usage
 -----
+
+Configuration
+-------------
+
+<pre>
+   Figure 2: using a hierarchy of cache servers
+   --------------------------------------------
+   
+    ......................................
+    . high bit rate areas                .
+    .                                    ...  
+    .    +---------------+               . .  
+    .    | +---------------+             . ...
+    .    +-| +---------------+           . . .
+    .      +-|  workstations |           . . .
+    .        +---v-------^---+           . . .
+    .            |       |               . . .
+    .            |       |fetch          . . .
+    .            |       |               . . .
+    .            |   +---^-------+       . . .
+    .        push|   | git-cache |       . . .
+    .            |   +---^-------+       . . .
+    .            |       |               . . . 
+    .............|.......|................ . .
+      .          |       |                 . .
+      ...........|.v.....|.^................ .
+        .        | |     | |                 .
+        .........|.|.v...|.|.^................
+                 | | |   | | |
+                 | | |   | | |
+                 | | | +-^-^-^-----+
+                 | | | | git-cache |
+           pushs | | | +-^---------+
+                 | | |   |
+                 | | |   | fetch
+                 | | |   |
+                 | | |   |   medium bitrate area
+    .............|.|.|...|.....................
+                 | | |   |   slow bitrate area
+                 | | |   |
+               +-v-v-v---^--+
+               | git server |
+               +------------+
+   
+</pre>
+
