@@ -1,0 +1,27 @@
+#!/bin/bash
+
+error() { echo "ERROR(git-cache-clone): $*" >&2; exit 1; }
+info() { echo "INFO(git-cache-clone): $*" >&2; }
+
+[[ -z "$GIT_CACHE_SERVER" ]] && error "variable GIT_CACHE_SERVER undefined"
+
+repo="$1"
+dir="${2:-$(basename $repo .git)}"
+
+[[ -d "$2" ]] && error "directory $dir exists"
+
+info "asking $GIT_CACHE_SERVER a cache for $repo"
+crepo=$(ssh "$GIT_CACHE_SERVER" gitcd --clone "$repo")
+[[ -z "$crepo" ]] && error "can't get a cache"
+
+info "cahe for $repo is $crepo"
+
+info "cloning $crepo into $dir"
+git clone "$crepo" "$dir"
+
+info "init of git $dir"
+cd "$dir"
+git remote set-url --push origin "$repo"
+git config remote.origin.uploadpack gitcd
+info "done"
+

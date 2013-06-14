@@ -1,0 +1,69 @@
+#!/bin/bash
+
+error() { echo "ERROR(gitcd): $*" >&2; exit 1; }
+info() { echo "INFO(gitcd): $*" >&2; }
+
+if [[ "$1" != "--clone" ]]; then
+	shift $(($# - 1))
+	info "going to directory $1"
+	cd "$1" 2>/dev/null || error "directory not found $1"
+	info fetching
+	git fetch --progress
+	info uploading
+	git-upload-pack .
+	exit
+fi
+
+uri=$(sed 's/ /%20/g' <<<$2)
+info "clone requested for $uri"
+
+if [[ $uri =~ ^(.+://)?(.+@)?([^:]+)(:[0-9]+)?(/.+)$ ]]; then
+    domain=${BASH_REMATCH[3]}
+    project=${BASH_REMATCH[5]}
+#    info "sheme ${BASH_REMATCH[1]} user ${BASH_REMATCH[2]} domain ${BASH_REMATCH[3]} port ${BASH_REMATCH[4]} path ${BASH_REMATCH[5]}"
+elif [[ $uri =~ ^(.+@)?([^:]+):(.+)$ ]]; then
+    domain=${BASH_REMATCH[2]}
+    project=${BASH_REMATCH[3]}
+#    info "sheme - user ${BASH_REMATCH[1]} domain ${BASH_REMATCH[2]} port - path ${BASH_REMATCH[3]}"
+else
+    error "Bad uri $uri"
+fi
+
+ROOTCACHEDIR=~/gitcachedir
+
+if [[ ! -d $ROOTCACHEDIR ]]; then
+    mkdir -p $ROOTCACHEDIR || error "can't create $ROOTCACHEDIR"
+fi
+cd $ROOTCACHEDIR
+
+ip=$(dig +short $domain)
+[[ -z "$ip" ]] && error "can't resolve ip for $domain"
+
+if [[ ! -d $ip ]]; then
+    mkdir -p $ip || error "can't create $ROOTCACHEDIR/$ip"
+fi
+
+ln -sf $ip $domain
+
+gcdir=$ROOTCACHEDIR/$domain/${project%.git}.git
+if [[ ! -d $gcdir ]]; then
+    dir=$(dirname $gcdir)
+    [[ -d $dir ]] || mkdir -p $dir || error "can't create directory $dir"
+    cd $dir
+    edir="$(basename $gcdir)"
+    if [[ -n "$GIT_CACHE_SERVER_CHAIN" ]]; then
+	export GIT_CACHE_SERVER="$GIT_CACHE_SERVER_CHAIN"
+	info "chain-cloning $uri into $gcdir through $GIT_CACHE_SERVER"
+	git-cache-clone "$uri" "$edir"
+    else
+	info "cloning $uri into $gcdir"
+	git clone --mirror "$uri" "$edir" >&2 || error "cloning failure"
+    fi
+else
+    cd $gcdir
+    info "fetching $uri"
+    git fetch --progress >&2 || error "fetching failure"
+fi
+
+echo "$(id -un)@$(hostname):$gcdir"
+exit 0
