@@ -150,7 +150,7 @@ Using the GIT_CACHE_SERVER_PRIMARY variable, it's possible to chain caches.
 
 To use this, install git-cclone and git-crecover on the server too (add them to execution path).
 
-When gitcache-server to cache a new repo, it will try to fetch it from another cache and so on.
+When gitcache-server is invoked to cache a new repo, it will try to fetch it from another cache and so on.
 
 <pre>
    Figure 2: using a hierarchy of cache servers
