@@ -65,6 +65,13 @@ GIT_CACHE_SERVER=XXXX
 
 where *XXXX* stands for **git@proxy** or **me@my.company.com** .
 
+This is how a client can connect to the cache using ssh. Feel free to use ssh-copy-id to install public keys on the cache server:
+
+<pre>
+$ . ~/.gitcache.conf
+$ ssh-copy-id $GIT_CACHE_SERVER
+</pre>
+
 Refer to installation of the cache server to get full understanding of what has
 to be set.
 
@@ -92,9 +99,11 @@ The effect of the command is:
 
 Example:
 <pre>
-% git cclone git@github.com:kooltux/git-cache.git git-cache
-% cd git-cache
-% git remote -v
+$ git cclone git@github.com:kooltux/git-cache.git git-cache
+$ cd git-cache
+$ git remote -v
+origin	git@gitcache.localdomain:/srv/git/gitcache/github.com//kooltux/git-cache.git (fetch)
+origin	https://github.com/kooltux/git-cache (push)
 </pre>
 
 The client can also use the command 'git-crecover' (that is also 'git crecover').
@@ -111,15 +120,15 @@ with 'git-crecover' or 'git crecover'. It will ask you what to do: REMOVE or REC
 **RECOVER:** insert the git cache references and ensure that the cached repository exists.
 
 
-Side effect: 'git crecover' can also transform a non-cached clone in a cached clone.
+Interesting side effect: 'git crecover' can also transform a non-cached clone in a cached clone when using the **RECOVER** command.
 
 Installation of the cache server
 --------------------------------
 
-Choose the machine and the account on it that will be used to store cached repositories
+Choose the machine and the account that will be used to store cached repositories
 and run the server script.
 
-Log on the machine, clone the repo and link 'gitcache-server' in a directory referenced in $PATH
+Log on the machine, clone the repo and copy 'gitcache-server' in a directory referenced by $PATH
 
 <pre>
 $ git clone https://github.com/kooltux/git-cache.git
@@ -131,14 +140,17 @@ $ cp git-cache/gitcache-server.conf ~/.gitcache-server.conf
 
 Edit the ~/.gitcache-server.conf file and ajust the variables:
 * GIT_CACHE_DIR : the cache directory where all git repos will be stored
-* GIT_CACHE_SERVER_PRIMARY : (optional) primary cache server
+* GIT_CACHE_SERVER_PRIMARY : (optional) primary cache server for chaining
 
 
-Usage
------
+Chaining caches
+---------------
 
-Configuration
--------------
+Using the GIT_CACHE_SERVER_PRIMARY variable, it's possible to chain caches.
+
+To use this, install git-cclone and git-crecover on the server too (add them to execution path).
+
+When gitcache-server to cache a new repo, it will try to fetch it from another cache and so on.
 
 <pre>
    Figure 2: using a hierarchy of cache servers
