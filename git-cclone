@@ -9,7 +9,7 @@ info() { echo "INFO(git-cclone): $*" >&2; }
 
 repo="$1"
 dir="${2:-$(basename $repo .git)}"
-mirror=$3 # option --mirror
+mirror=$3 # optional --mirror (used by git-crecover) or --bare (can be set by user)
 
 [[ -d "$dir" ]] && error "directory $dir exists"
 

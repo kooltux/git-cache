@@ -28,8 +28,9 @@ Audience
 --------
 
 These scripts are for teams working on some git repositories
-staying on external sites. Using it allow to reduce the external 
-bandwidth used by git fetchs.
+staying on external sites. Using git-cache reduces significantly the external bandwith usage due to repeated fetchs.
+
+From the developer point of view, the cloned repository is usable transparently: pushes occur on the primary upstream server.
 
 Content
 -------
@@ -81,11 +82,11 @@ To clone a directory use can use either the command 'git-cclone' or the command
 
 Usage: **git cclone repository [directory [--mirror|--bare]]**
 
-Currently, most of the options of 'git clone' aren't available through 'cclone'.
+**Please note**: Currently, most of the options of 'git clone' aren't available through 'cclone'.
 
 The effect of the command is:
 - access the git cache server to ensure caching of the repository 
-(it will produce a creation or a fetching);
+(it will produce a creation or a fetch on server side);
 - clone the cached git;
 - configure the cloned project to push on original git server and to fetch on cache.
 
@@ -98,9 +99,9 @@ Example:
 
 The client can also use the command 'git-crecover' (that is also 'git crecover').
 This command can either recover for a cache repository that was removed from the
-cache server or it can merely make a cache entry for an existing git clone (in other
-it inserts a fetching cache for a repository that was clone in a standard way -without
-cache-).
+cache server or it can merely make a cache entry for an existing git clone (in other words, 
+it inserts a fetching cache for a repository that was cloned in a standard way **without
+cache**).
 
 'git-crecover' is interactive. Go to the directory of the cloned repository and call it
 with 'git-crecover' or 'git crecover'. It will ask you what to do: REMOVE or RECOVER.
@@ -109,6 +110,8 @@ with 'git-crecover' or 'git crecover'. It will ask you what to do: REMOVE or REC
 
 **RECOVER:** insert the git cache references and ensure that the cached repository exists.
 
+
+Side effect: 'git crecover' can also transform a non-cached clone in a cached clone.
 
 Installation of the cache server
 --------------------------------
@@ -119,14 +122,11 @@ and run the server script.
 Log on the machine, clone the repo and link 'gitcache-server' in a directory referenced in $PATH
 
 <pre>
-$ ssh user@hostname 
-
 $ git clone https://github.com/kooltux/git-cache.git
 
 $ ln -s git-cache/gitcache-server ~/bin/
 
 $ cp git-cache/gitcache-server.conf ~/.gitcache-server.conf
-
 </pre>
 
 Edit the ~/.gitcache-server.conf file and ajust the variables:
