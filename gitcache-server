@@ -67,5 +67,5 @@ else
     git fetch --progress >&2 || error "fetching failure"
 fi
 
-echo "$(id -un)@$(hostname):$gcdir"
+echo "$gcdir"
 exit 0

@@ -14,7 +14,7 @@ mirror=$3 # option --mirror
 [[ -d "$dir" ]] && error "directory $dir exists"
 
 info "asking $GIT_CACHE_SERVER a cache for $repo"
-crepo=$(ssh "$GIT_CACHE_SERVER" gitcache-server --clone "$repo")
+crepo="${GIT_CACHE_SERVER}:$(ssh "$GIT_CACHE_SERVER" gitcache-server --clone "$repo")"
 [[ -z "$crepo" ]] && error "can't get a cache"
 
 info "cache for $repo is $crepo"
