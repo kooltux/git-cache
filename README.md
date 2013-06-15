@@ -143,6 +143,17 @@ Edit the ~/.gitcache-server.conf file and ajust the variables:
 * GIT_CACHE_SERVER_PRIMARY : (optional) primary cache server for chaining
 
 
+Using cache standalone (without server)
+---------------------------------------
+
+Into your account, you can put the client AND the server too. The server will still be 
+accessed with ssh. Here below the examples of configuring your **.profile** or **.bashrc**:
+
+<pre>
+GIT_CACHE_SERVER=$(id _un)@localhost
+GIT_CACHE_DIR=~/.gitcachedir
+</pre>
+
 Chaining caches
 ---------------
 
@@ -199,3 +210,11 @@ Security
 
 As for any client of SSH, you should be aware of the security holes of ssh.
 Please refer to a good lesson about it.
+
+FAQ
+---
+
+*_Q:_* And for Windows?
+*_A:_* Hahahahahahahaha
+*_Q:_* But seriously...
+*_A:_* Well, fork and let now us the URL to put in place of the laugths.
