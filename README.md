@@ -215,6 +215,10 @@ FAQ
 ---
 
 *_Q:_* And for Windows?
+
 *_A:_* Hahahahahahahaha
+
 *_Q:_* But seriously...
+
 *_A:_* Well, fork and let now us the URL to put in place of the laugths.
+
