@@ -15,17 +15,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-# prefix log with cache server name
-log() {
-	srvid="git-cache($(id -un)@$(hostname -f))"
-	while IFS='' read -r line; do 
-		echo "$srvid $line" >&2
-	done
-}
-exec 2> >(log)
+srvid="gitcache-server($(id -un)@$(hostname -f))"
 
-error() { echo "ERROR: $*" >&2; exit 1; }
-info() { echo "INFO: $*" >&2; }
+error() { echo "$srvid ERROR: $*" >&2; exit 1; }
+info() { echo "$srvid $*" >&2; }
 
 [[ -r ~/.gitcache-server.conf ]] && . ~/.gitcache-server.conf
 
@@ -43,7 +36,7 @@ if [[ "$1" != "--clone" ]]; then
 fi
 
 uri=$(sed 's/ /%20/g' <<<$2)
-info "clone requested for $uri"
+info "clone request for $uri"
 
 if [[ $uri =~ ^(.+://)?(.+@)?([^:/]+)(:[0-9]+)?(/.+)$ ]]; then
     domain=${BASH_REMATCH[3]}
