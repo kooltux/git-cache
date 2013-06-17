@@ -1,7 +1,31 @@
 #!/bin/bash
 
-error() { echo "ERROR(gitcache-server): $*" >&2; exit 1; }
-info() { echo "INFO(gitcache-server): $*" >&2; }
+# Copyright 2013, Intel Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Library General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+# prefix log with cache server name
+log() {
+	srvid="git-cache($(id -un)@$(hostname -f))"
+	while IFS='' read -r line; do 
+		echo "$srvid $line" >&2
+	done
+}
+exec 2> >(log)
+
+error() { echo "ERROR: $*" >&2; exit 1; }
+info() { echo "INFO: $*" >&2; }
 
 [[ -r ~/.gitcache-server.conf ]] && . ~/.gitcache-server.conf
 
@@ -11,9 +35,9 @@ if [[ "$1" != "--clone" ]]; then
 	shift $(($# - 1))
 	info "going to directory $1"
 	cd "$1" 2>/dev/null || error "directory not found $1"
-	info fetching
-	git fetch --progress
-	info uploading
+	info refreshing cache from $(git ls-remote --get-url origin)
+	git fetch --progress >&2
+	info uploading changes to client
 	git-upload-pack .
 	exit
 fi
@@ -25,7 +49,7 @@ if [[ $uri =~ ^(.+://)?(.+@)?([^:/]+)(:[0-9]+)?(/.+)$ ]]; then
     domain=${BASH_REMATCH[3]}
     project=${BASH_REMATCH[5]}
 #    info "sheme ${BASH_REMATCH[1]} user ${BASH_REMATCH[2]} domain ${BASH_REMATCH[3]} port ${BASH_REMATCH[4]} path ${BASH_REMATCH[5]}"
-elif [[ $uri =~ ^(.+@)?([^:]+):(.+)$ ]]; then
+elif [[ $uri =~ ^(.+@)?([^:/]+):(.+)$ ]]; then
     domain=${BASH_REMATCH[2]}
     project=${BASH_REMATCH[3]}
 #    info "sheme - user ${BASH_REMATCH[1]} domain ${BASH_REMATCH[2]} port - path ${BASH_REMATCH[3]}"
@@ -57,15 +81,15 @@ if [[ ! -d $gcdir ]]; then
     edir="$(basename $gcdir)"
     if [[ -n "$GIT_CACHE_SERVER_PRIMARY" ]]; then
 		export GIT_CACHE_SERVER="$GIT_CACHE_SERVER_PRIMARY"
-		info "chain-cloning $uri into $gcdir through $GIT_CACHE_SERVER"
-		git-cclone "$uri" "$edir" --mirror || error "chain-cloning failure"
+		info "cache miss - chain-cloning $uri into $gcdir through $GIT_CACHE_SERVER"
+		git-cclone "$uri" "$edir" --mirror >&2 || error "chain-cloning failure"
     else
-		info "cloning $uri into $gcdir"
+		info "cache miss - cloning $uri into $gcdir"
 		git clone --progress --mirror "$uri" "$edir" >&2 || error "cloning failure"
     fi
 else
     cd $gcdir
-    info "fetching $uri"
+    info "cache hit - refreshing cache from $uri"
     git fetch --progress >&2 || error "fetching failure"
 fi
 
