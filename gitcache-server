@@ -61,7 +61,7 @@ if [[ ! -d $gcdir ]]; then
 		git-cclone "$uri" "$edir" --mirror || error "chain-cloning failure"
     else
 		info "cloning $uri into $gcdir"
-		git clone --mirror "$uri" "$edir" >&2 || error "cloning failure"
+		git clone --progress --mirror "$uri" "$edir" >&2 || error "cloning failure"
     fi
 else
     cd $gcdir
