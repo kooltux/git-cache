@@ -7,6 +7,33 @@ info() { echo "INFO(git-crecover): $*" >&2; }
 
 repo="$(git remote -v | awk '$1=="origin" && $3=="(push)"{print $2}')"
 
+do_recover() {
+    info "recovering cache for $repo"
+    [[ -z "$GIT_CACHE_SERVER" ]] && error "variable GIT_CACHE_SERVER undefined"
+    info "asking $GIT_CACHE_SERVER a cache for $repo"
+    crepo="${GIT_CACHE_SERVER}:$(ssh "$GIT_CACHE_SERVER" gitcache-server --clone "$repo")"
+    [[ -z "$crepo" ]] && error "can't get a cache"
+    info "init of git $dir"
+    git remote set-url origin "$crepo"
+    git remote set-url --push origin "$repo"
+    git config remote.origin.uploadpack gitcache-server
+    info "done"
+    exit 0
+}
+
+do_remove() {
+    info "removing cache reference"
+    git config --unset remote.origin.uploadpack
+    git remote set-url origin "$repo"
+    info "done"
+    exit 0
+}
+
+case "$1" in
+    -a|--auto) do_recover;;
+    -r|--remove) do_remove;;
+esac
+
 cat << EOC
 
 You have two ways of recovering from a cache miss of git-cache.
@@ -17,26 +44,8 @@ EOC
 PS3="What to do? "
 select action in REMOVE RECOVER; do
     case $action in
-	REMOVE)
-	    info "removing cache reference"
-	    git config --unset remote.origin.uploadpack
-	    git remote set-url origin "$repo"
-	    info "done"
-	    exit 0
-	    ;;
-	RECOVER)
-	    info "recovering cache for $repo"
-	    [[ -z "$GIT_CACHE_SERVER" ]] && error "variable GIT_CACHE_SERVER undefined"
-	    info "asking $GIT_CACHE_SERVER a cache for $repo"
-	    crepo="${GIT_CACHE_SERVER}:$(ssh "$GIT_CACHE_SERVER" gitcache-server --clone "$repo")"
-	    [[ -z "$crepo" ]] && error "can't get a cache"
-	    info "init of git $dir"
-	    git remote set-url origin "$crepo"
-	    git remote set-url --push origin "$repo"
-	    git config remote.origin.uploadpack gitcache-server
-	    info "done"
-	    exit 0
-	    ;;
+	REMOVE) do_remove;;
+	RECOVER) do_recover;;
     esac
 done
 
