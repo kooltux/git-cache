@@ -20,11 +20,11 @@ crepo="${GIT_CACHE_SERVER}:$(ssh "$GIT_CACHE_SERVER" gitcache-server --clone "$r
 info "cache for $repo is $crepo"
 
 info "cloning $crepo into $dir"
-git clone $mirror "$crepo" "$dir"
+git clone $mirror "$crepo" "$dir" >&2
 
 info "init of git $dir"
 cd "$dir"
-git remote set-url --push origin "$repo"
-git config remote.origin.uploadpack gitcache-server
+git remote set-url --push origin "$repo" >&2
+git config remote.origin.uploadpack gitcache-server >&2
 info "done"
 
