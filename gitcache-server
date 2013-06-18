@@ -16,6 +16,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 srvid="gitcache-server($(id -un)@$(hostname -f))"
+log() { while IFS='' read -r line; do echo "$(date "+%Y%m%d %H:%M:%S") $srvid $line" >&2; done; };
+exec 2> >(log)
 
 error() { echo "$srvid ERROR: $*" >&2; exit 1; }
 info() { echo "$srvid $*" >&2; }
@@ -26,7 +28,7 @@ info() { echo "$srvid $*" >&2; }
 
 if [[ "$1" != "--clone" ]]; then
 	shift $(($# - 1))
-	info "going to directory $1"
+	info using cache directory $1
 	cd "$1" 2>/dev/null || error "directory not found $1"
 	info refreshing cache from $(git ls-remote --get-url origin)
 	git fetch --progress >&2
