@@ -16,21 +16,26 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 srvid="gitcache-server($(id -un)@$(hostname -f))"
-log() { while IFS='' read -r line; do echo "$(date "+%Y%m%d %H:%M:%S") $srvid $line" >&2; done; };
-exec 2> >(log)
+userip=$(echo $SSH_CONNECTION | awk '{print $1}')
 
-error() { echo "$srvid ERROR: $*" >&2; exit 1; }
-info() { echo "$srvid $*" >&2; }
+prefixoutput() { awk -vX="$srvid" -vRS='[\r\n]' '{printf("%s - %s%s",X,$0,RT);fflush();}' >&2; }
+exec 2> >(prefixoutput)
+
+log() { [[ -n "$GIT_CACHE_LOG" ]] && echo $(date "+%Y%m%d %H:%M:%S") - $userip - "$@" >>$GIT_CACHE_LOG; }
+error() { echo "ERROR: $*" >&2; log "ERROR: $*"; exit 1; }
+info() { echo "$*" >&2; }
 
 [[ -r ~/.gitcache-server.conf ]] && . ~/.gitcache-server.conf
 
 [[ $# -eq 0 ]] && error "Invalid arguments."
 
+[[ -z "$GIT_CACHE_DIR" ]] && error "GIT_CACHE_DIR is not defined"
 if [[ "$1" != "--clone" ]]; then
 	shift $(($# - 1))
 	info using cache directory $1
 	cd "$1" 2>/dev/null || error "directory not found $1"
 	info refreshing cache from $(git ls-remote --get-url origin)
+	log "cache update: $1"
 	git fetch --progress >&2
 	info uploading changes to client
 	git-upload-pack .
@@ -52,8 +57,6 @@ else
     error "Bad uri $uri"
 fi
 
-[[ -z "$GIT_CACHE_DIR" ]] && error "GIT_CACHE_DIR is not defined"
-
 if [[ ! -d $GIT_CACHE_DIR ]]; then
     mkdir -p $GIT_CACHE_DIR || error "can't create $GIT_CACHE_DIR"
 fi
@@ -69,6 +72,14 @@ fi
 ln -sf $ip $domain
 
 gcdir=$(pwd)/$domain/${project%.git}.git
+
+if [[ -d $gcdir ]]; then
+    cd $gcdir
+    info "cache hit - refreshing cache from $uri"
+    git fetch --progress >&2 || { rm -rf $gcdir; info "Fetching cached repo failed"; }
+    log "fetch: $domain/${project%.git}"
+fi
+
 if [[ ! -d $gcdir ]]; then
     dir=$(dirname $gcdir)
     [[ -d $dir ]] || mkdir -p $dir || error "can't create directory $dir"
@@ -77,15 +88,13 @@ if [[ ! -d $gcdir ]]; then
     if [[ -n "$GIT_CACHE_SERVER_PRIMARY" ]]; then
 		export GIT_CACHE_SERVER="$GIT_CACHE_SERVER_PRIMARY"
 		info "cache miss - chain-cloning $uri into $gcdir through $GIT_CACHE_SERVER"
-		git-cclone "$uri" "$edir" --mirror >&2 || error "chain-cloning failure"
+		git-cclone "$uri" "$edir" --mirror >&2 || { rm -rf $gcdir; error "chain-cloning failure"; }
+                log "cclone: $domain/${project%.git}"
     else
 		info "cache miss - cloning $uri into $gcdir"
-		git clone --progress --mirror "$uri" "$edir" >&2 || error "cloning failure"
+		git clone --progress --mirror "$uri" "$edir" >&2 || { rm -rf $gcdir; error "cloning failure"; }
+                log "clone: $domain/${project%.git}"
     fi
-else
-    cd $gcdir
-    info "cache hit - refreshing cache from $uri"
-    git fetch --progress >&2 || error "fetching failure"
 fi
 
 echo "$gcdir"
