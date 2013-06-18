@@ -15,13 +15,21 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+ts_start=$(date +%s)
+op_start=$ts_start
+op_elapsed() { echo $(date +%s) | awk -vts1="$op_start" '{printf("%d",($1-ts1+1));}'; }
+
 srvid="gitcache-server($(id -un)@$(hostname -f))"
 userip=$(echo $SSH_CONNECTION | awk '{print $1}')
 
-prefixoutput() { awk -vX="$srvid" -vRS='[\r\n]' '{printf("%s - %s%s",X,$0,RT);fflush();}' >&2; }
+prefixoutput() { awk -vX="$srvid" -vts1="$ts_start" -vRS='[\r\n]' '{ ts2=strftime("%s"); printf("%s - %ds - %s%s",X,(ts2-ts1+1),$0,RT);fflush();}' >&2; }
 exec 2> >(prefixoutput)
 
-log() { [[ -n "$GIT_CACHE_LOG" ]] && echo $(date "+%Y%m%d %H:%M:%S") - $userip - "$@" >>$GIT_CACHE_LOG; }
+log() { 
+	[[ -n "$GIT_CACHE_LOG" ]] && echo $(date "+%Y%m%d %H:%M:%S") [$userip] $(op_elapsed)s - "$@" >>$GIT_CACHE_LOG; 
+	op_start=$(date +%s)
+}
+
 error() { echo "ERROR: $*" >&2; log "ERROR: $*"; exit 1; }
 info() { echo "$*" >&2; }
 
@@ -35,10 +43,11 @@ if [[ "$1" != "--clone" ]]; then
 	info using cache directory $1
 	cd "$1" 2>/dev/null || error "directory not found $1"
 	info refreshing cache from $(git ls-remote --get-url origin)
-	log "cache update: $1"
 	git fetch --progress >&2
+	log "fetch => fetch : $1"
 	info uploading changes to client
 	git-upload-pack .
+	log "fetch <= upload : $1"
 	exit
 fi
 
@@ -77,7 +86,7 @@ if [[ -d $gcdir ]]; then
     cd $gcdir
     info "cache hit - refreshing cache from $uri"
     git fetch --progress >&2 || { rm -rf $gcdir; info "Fetching cached repo failed"; }
-    log "fetch: $domain/${project%.git}"
+    log "clone => fetch : $domain/${project%.git}"
 fi
 
 if [[ ! -d $gcdir ]]; then
@@ -89,11 +98,11 @@ if [[ ! -d $gcdir ]]; then
 		export GIT_CACHE_SERVER="$GIT_CACHE_SERVER_PRIMARY"
 		info "cache miss - chain-cloning $uri into $gcdir through $GIT_CACHE_SERVER"
 		git-cclone "$uri" "$edir" --mirror >&2 || { rm -rf $gcdir; error "chain-cloning failure"; }
-                log "cclone: $domain/${project%.git}"
+                log "clone => cclone : $domain/${project%.git}"
     else
 		info "cache miss - cloning $uri into $gcdir"
 		git clone --progress --mirror "$uri" "$edir" >&2 || { rm -rf $gcdir; error "cloning failure"; }
-                log "clone: $domain/${project%.git}"
+                log "clone => clone : $domain/${project%.git}"
     fi
 fi
 
