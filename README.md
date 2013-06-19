@@ -35,8 +35,8 @@ From the developer point of view, the cloned repository is usable transparently:
 Content
 -------
 
-The solution comes with two scripts:
-* 'git-cclone' and 'git-crecover' to be installed on all clients
+The solution comes with some scripts:
+* 'git-cclone', 'git-crecover' and 'git-cadd' to be installed on all clients
 * 'gitccache-server' to be installed on the cache server
 
 And 2 examples of configuration files.
@@ -46,14 +46,15 @@ And 2 examples of configuration files.
 Installing the client scripts
 -----------------------------
 
-As user, put the scripts 'git-cclone' and 'git-crecover' in your
-PATH.
+As user, put the scripts 'git-cclone', 'git-crecover' and
+'git-cadd' in your PATH.
 
 For example:
 <pre>
 $ git clone https://github.com/kooltux/git-cache.git
 $ ln -s git-cache/git-cclone ~/bin/
 $ ln -s git-cache/git-crecover ~/bin
+$ ln -s git-cache/git-cadd ~/bin
 </pre>
 
 Create the file (or copy git-cache/gitcache.conf) **~/.gitcache.conf** and edit it to put the 
@@ -84,6 +85,8 @@ Usage on the client
 After installation, the client mainly have the command to clone git repositories
 through the cache. The standard clone is still available as usual.
 
+### git-cclone
+
 To clone a directory use can use either the command 'git-cclone' or the command
 'git cclone'.
 
@@ -112,15 +115,43 @@ cache server or it can merely make a cache entry for an existing git clone (in o
 it inserts a fetching cache for a repository that was cloned in a standard way **without
 cache**).
 
-'git-crecover' is interactive. Go to the directory of the cloned repository and call it
+### git-cadd
+
+It is sometimes interesting to add remote repositories to your current
+repository with the command 'git remote add'. The command 'git-cadd'
+is the git-cache version of the command 'git remote add' but it inserts the
+cache for the added remote. It accepts exactly the same arguments that
+'git remote add'.
+
+Usage: **git cadd [options...] name repository**
+
+
+### git-crecover
+
+'git-crecover' is interactive unless called with options. 
+
+Usage: **git crecover [name] [-r|--remove|-a|--auto]**
+
+The optional argument 'name' identify the remote repository name and
+is 'origin' by default.
+
+Go to the directory of the cloned repository and call it
 with 'git-crecover' or 'git crecover'. It will ask you what to do: REMOVE or RECOVER.
 
 **REMOVE:** remove any reference to any caching of git.
 
 **RECOVER:** insert the git cache references and ensure that the cached repository exists.
 
+Interesting side effect: 'git crecover' can also transform a non-cached clone 
+in a cached clone when using the **RECOVER** command.
 
-Interesting side effect: 'git crecover' can also transform a non-cached clone in a cached clone when using the **RECOVER** command.
+When called with '-r' or '--remove', git-crecover removes any cache reference
+for the optionnaly given remote without any prompting.
+
+When called with '-a' or '--auto', git-crecover insert the caching 
+for the optionnaly given remote without any prompting.
+
+
 
 Installation of the cache server
 --------------------------------
