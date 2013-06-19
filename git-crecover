@@ -18,42 +18,64 @@
 error() { echo "git-crecover ERROR: $*" >&2; exit 1; }
 info() { echo "git-crecover $*" >&2; }
 
+git branch >/dev/null 2>&1 || error "not in a git repository"
+
 [[ -r ~/.gitcache.conf ]] && . ~/.gitcache.conf
 
-repo="$(git remote -v | awk '$1=="origin" && $3=="(push)"{print $2}')"
+origin=
+
+setorg() {
+    git remote|grep -q "^$1\$" || error "bad remote name $1"
+    origin="$1"
+}
+
+reporg() {
+    git remote -v | awk -vn="$origin" '$1==n && $3=="(push)" {print $2}'
+}
 
 do_recover() {
+    local repo=$(reporg)
     info "recovering cache for $repo"
     [[ -z "$GIT_CACHE_SERVER" ]] && error "variable GIT_CACHE_SERVER undefined"
     info "asking $GIT_CACHE_SERVER a cache for $repo"
-    crepo="${GIT_CACHE_SERVER}:$(ssh "$GIT_CACHE_SERVER" gitcache-server --clone "$repo")"
-    [[ -z "$crepo" ]] && error "can't get a cache"
+
+    local cpath=$(ssh "$GIT_CACHE_SERVER" gitcache-server --clone "$repo") || error "server failure"
+    [[ -z "$cpath" ]] && error "can't get a cache"
+    local crepo="${GIT_CACHE_SERVER}:${cpath}"
+
     info "init of git $dir"
-    git remote set-url origin "$crepo" >&2
-    git remote set-url --push origin "$repo" >&2
-    git config remote.origin.uploadpack gitcache-server >&2
+    git remote set-url "$origin" "$crepo" >&2
+    git remote set-url --push "$origin" "$repo" >&2
+    git config "remote.$origin.uploadpack" gitcache-server >&2
     info "done"
     exit 0
 }
 
 do_remove() {
+    local repo=$(reporg)
     info "removing cache reference"
-    git config --unset remote.origin.uploadpack >&2
-    git remote set-url origin "$repo" >&2
+    git config --unset "remote.$origin.uploadpack" >&2
+    git remote set-url "$origin" "$repo" >&2
     info "done"
     exit 0
 }
 
-case "$1" in
-    -a|--auto) do_recover;;
-    -r|--remove) do_remove;;
-esac
+setorg origin
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+	-a|--auto) do_recover;;
+	-r|--remove) do_remove;;
+	*) setorg "$1"; shift;;
+    esac
+done
 
 cat << EOC
 
 You have two ways of recovering from a cache miss of git-cache.
 You can either REMOVE the caching indirection or you can RECOVER
 the cache and reset it to the current directory.
+
+The target remote is $origin
 
 EOC
 PS3="What to do? "
