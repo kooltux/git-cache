@@ -29,15 +29,17 @@ mirror=$3 # optional --mirror (used by git-crecover) or --bare (can be set by us
 [[ -d "$dir" ]] && error "directory $dir exists"
 
 info "asking $GIT_CACHE_SERVER a cache for $repo"
-crepo="${GIT_CACHE_SERVER}:$(ssh "$GIT_CACHE_SERVER" gitcache-server --clone "$repo")"
-[[ -z "$crepo" ]] && error "can't get a cache"
+cpath=$(ssh "$GIT_CACHE_SERVER" gitcache-server --clone "$repo") || error "server failure"
+[[ -z "$cpath" ]] && error "can't get a cache"
+crepo="${GIT_CACHE_SERVER}:${cpath}"
 
 info "Upstream repository: $repo"
 info "Cache repository: $crepo"
 
-git clone $mirror "$crepo" "$dir" >&2
+git clone $mirror "$crepo" "$dir" >&2 || error "failure of git clone $mirror $crepo $dir"
 
-cd "$dir"
+cd "$dir" || error "can't go to directory $dir"
+
 git remote set-url --push origin "$repo" >&2
 git config remote.origin.uploadpack gitcache-server >&2
 info "done. Git-cache is active for future fetch operations"
