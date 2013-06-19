@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Copyright 2013, Intel Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Library General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+error() { echo "git-cadd ERROR: $*" >&2; exit 1; }
+info() { echo "git-cadd $*" >&2; }
+
+git branch >/dev/null 2>&1 || error "not in a git repository"
+
+[[ -r ~/.gitcache.conf ]] && . ~/.gitcache.conf
+
+[[ -z "$GIT_CACHE_SERVER" ]] && error "variable GIT_CACHE_SERVER undefined"
+
+declare -a args=("$@")
+
+repo="${args[-1]}"
+name="${args[-2]}"
+
+info "adding remote $name for repo $repo"
+
+git remote | grep -q "^$name\$" && error "remote $name already exists, remove it first"
+
+info "asking $GIT_CACHE_SERVER a cache for $repo"
+cpath=$(ssh "$GIT_CACHE_SERVER" gitcache-server --clone "$repo") || error "server failure"
+[[ -z "$cpath" ]] && error "can't get a cache"
+crepo="${GIT_CACHE_SERVER}:${cpath}"
+
+
+info "Upstream repository: $repo"
+info "Cache repository: $crepo"
+
+args[$((${#args[@]}-1))]="$crepo"
+git remote add "${args[@]}" >&2 || error "failure of git remote add ${args[@]}"
+
+git remote set-url --push "$name" "$repo" >&2
+git config "remote.$name.uploadpack" gitcache-server >&2
+
+info "done. Git-cache is active for future fetch operations on remote $name"
+
