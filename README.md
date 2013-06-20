@@ -172,7 +172,7 @@ $ cp git-cache/gitcache-server.conf ~/.gitcache-server.conf
 Edit the ~/.gitcache-server.conf file and ajust the variables:
 * GIT_CACHE_DIR : the cache directory where all git repos will be stored
 * GIT_CACHE_SERVER_PRIMARY : (optional) primary cache server for chaining
-
+* GIT_CACHE_LOG : (optional) a log file for gitcache-server activity
 
 Using cache standalone (without server)
 ---------------------------------------
@@ -181,7 +181,7 @@ Into your account, you can put the client AND the server too. The server will st
 accessed with ssh. Here below the examples of configuring your **.profile** or **.bashrc**:
 
 <pre>
-GIT_CACHE_SERVER=$(id _un)@localhost
+GIT_CACHE_SERVER=$(id -un)@localhost
 GIT_CACHE_DIR=~/.gitcachedir
 </pre>
 
@@ -193,6 +193,8 @@ Using the GIT_CACHE_SERVER_PRIMARY variable, it's possible to chain caches.
 To use this, install git-cclone and git-crecover on the server too (add them to execution path).
 
 When gitcache-server is invoked to cache a new repo, it will try to fetch it from another cache and so on.
+
+*GIT_CACHE_SERVER_PRIMARY* has the same syntax as GIT_CACHE_SERVER and indicates the 'next' cache server to fetch from.
 
 <pre>
    Figure 2: using a hierarchy of cache servers
@@ -251,5 +253,5 @@ FAQ
 
 *_Q:_* But seriously...
 
-*_A:_* Well, fork and let now us the URL to put in place of the laugths.
+*_A:_* Well, fork and let us know the URL to put in place of the laughs.
 
