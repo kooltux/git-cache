@@ -30,7 +30,7 @@ mirror=$3 # optional --mirror (used by git-crecover) or --bare (can be set by us
 [[ -d "$dir" ]] && error "directory $dir exists"
 
 info "asking $GIT_CACHE_SERVER a cache for $repo"
-cpath=$(ssh "$GIT_CACHE_SERVER" gitcache-server --clone "$repo") || error "server failure"
+cpath=$(ssh -n "$GIT_CACHE_SERVER" gitcache-server --clone "$repo") || error "server failure"
 [[ -z "$cpath" ]] && error "can't get a cache"
 crepo="${GIT_CACHE_SERVER}:${cpath}"
 

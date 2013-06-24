@@ -40,7 +40,7 @@ do_recover() {
     [[ -z "$GIT_CACHE_SERVER" ]] && error "variable GIT_CACHE_SERVER undefined"
     info "asking $GIT_CACHE_SERVER a cache for $repo"
 
-    local cpath=$(ssh "$GIT_CACHE_SERVER" gitcache-server --clone "$repo") || error "server failure"
+    local cpath=$(ssh -n "$GIT_CACHE_SERVER" gitcache-server --clone "$repo") || error "server failure"
     [[ -z "$cpath" ]] && error "can't get a cache"
     local crepo="${GIT_CACHE_SERVER}:${cpath}"
 

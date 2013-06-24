@@ -35,7 +35,7 @@ info "adding remote $name for repo $repo"
 git remote | grep -q "^$name\$" && error "remote $name already exists, remove it first"
 
 info "asking $GIT_CACHE_SERVER a cache for $repo"
-cpath=$(ssh "$GIT_CACHE_SERVER" gitcache-server --clone "$repo") || error "server failure"
+cpath=$(ssh -n "$GIT_CACHE_SERVER" gitcache-server --clone "$repo") || error "server failure"
 [[ -z "$cpath" ]] && error "can't get a cache"
 crepo="${GIT_CACHE_SERVER}:${cpath}"
 
