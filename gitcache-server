@@ -27,8 +27,8 @@ prefixoutput() { awk -vX="$srvid" -vts1="$ts_start" -vRS='[\r\n]' '{ ts2=strftim
 exec 2> >(prefixoutput)
 
 log() { 
-	[[ -n "$GIT_CACHE_LOG" ]] && echo $(date "+%Y%m%d %H:%M:%S") [$userip] $(op_elapsed)s - "$@" >>$GIT_CACHE_LOG; 
-	op_start=$(date +%s)
+    [[ -n "$GIT_CACHE_LOG" ]] && echo $(date "+%Y%m%d %H:%M:%S") [$userip] $(op_elapsed)s - "$@" >>$GIT_CACHE_LOG; 
+    op_start=$(date +%s)
 }
 
 error() { echo "ERROR: $*" >&2; log "ERROR: $*"; exit 1; }
@@ -39,73 +39,94 @@ info() { echo "$*" >&2; }
 [[ $# -eq 0 ]] && error "Invalid arguments."
 
 [[ -z "$GIT_CACHE_DIR" ]] && error "GIT_CACHE_DIR is not defined"
+
+#####################################################
+# FETCHING (not cloning mean FETCHING)
+#####################################################
 if [[ "$1" != "--clone" ]]; then
-	shift $(($# - 1))
-	info using cache directory $1
-	cd "$1" 2>/dev/null || error "directory not found $1"
-	info refreshing cache from $(git ls-remote --get-url origin)
-	git fetch --progress >&2
-	log "fetch => fetch : $1"
-	info uploading changes to client
-	git-upload-pack .
-	log "fetch <= upload : $1"
-	exit
+    shift $(($# - 1))
+    info using cache directory $1
+    cd "$1" 2>/dev/null || error "directory not found $1"
+    info refreshing cache from $(git ls-remote --get-url origin)
+    # remove the tags to fetch them (for syncing with deleted tags)
+    git tag -l 2>/dev/null | xargs git tag -d >&/dev/null
+    # fetch with prune (for syncing with deleted branches)
+    git fetch --prune --progress >&2
+    log "fetch => fetch : $1"
+    info uploading changes to client
+    git-upload-pack .
+    log "fetch <= upload : $1"
+    exit
 fi
 
+#####################################################
+# CLONING (but it may mean fetching...)
+#####################################################
+
+# get the uri to clone
 uri=$(sed 's/ /%20/g' <<<$2)
 info "clone request for $uri"
 
+# scan the domain and projet parts of the uri
 if [[ $uri =~ ^(.+://)?(.+@)?([^:/]+)(:[0-9]+)?(/.+)$ ]]; then
     domain=${BASH_REMATCH[3]}
     project=${BASH_REMATCH[5]}
-#    info "sheme ${BASH_REMATCH[1]} user ${BASH_REMATCH[2]} domain ${BASH_REMATCH[3]} port ${BASH_REMATCH[4]} path ${BASH_REMATCH[5]}"
+    # info "sheme ${BASH_REMATCH[1]} user ${BASH_REMATCH[2]} domain ${BASH_REMATCH[3]} port ${BASH_REMATCH[4]} path ${BASH_REMATCH[5]}"
 elif [[ $uri =~ ^(.+@)?([^:/]+):(.+)$ ]]; then
     domain=${BASH_REMATCH[2]}
     project=${BASH_REMATCH[3]}
-#    info "sheme - user ${BASH_REMATCH[1]} domain ${BASH_REMATCH[2]} port - path ${BASH_REMATCH[3]}"
+    # info "sheme - user ${BASH_REMATCH[1]} domain ${BASH_REMATCH[2]} port - path ${BASH_REMATCH[3]}"
 else
     error "Bad uri $uri"
 fi
 
+# enter the cachedir
 if [[ ! -d $GIT_CACHE_DIR ]]; then
     mkdir -p $GIT_CACHE_DIR || error "can't create $GIT_CACHE_DIR"
 fi
 cd $GIT_CACHE_DIR
 
+# create the domain/ip root directories
 ip=$(dig +short $domain)
 [[ -z "$ip" ]] && error "can't resolve ip for $domain"
 
 if [[ ! -d $ip ]]; then
     mkdir -p $ip || error "can't create $(pwd)/$ip"
 fi
-
 ln -sf $ip $domain
 
+# try to fetch if cached and remove on error
 gcdir=$(pwd)/$domain/${project%.git}.git
-
 if [[ -d $gcdir ]]; then
     cd $gcdir
     info "cache hit - refreshing cache from $uri"
-    git fetch --progress >&2 || { rm -rf $gcdir; info "Fetching cached repo failed"; }
+    # remove the tags to fetch them (for syncing with deleted tags)
+    git tag -l 2>/dev/null | xargs git tag -d >&/dev/null
+    # fetch with prune (for syncing with deleted branches)
+    git fetch --prune --progress >&2 || { rm -rf $gcdir; info "Fetching cached repo failed"; }
     log "clone => fetch : $domain/${project%.git}"
 fi
 
+# if not cached or had fetch error, clone
 if [[ ! -d $gcdir ]]; then
     dir=$(dirname $gcdir)
     [[ -d $dir ]] || mkdir -p $dir || error "can't create directory $dir"
     cd $dir
     edir="$(basename $gcdir)"
     if [[ -n "$GIT_CACHE_SERVER_PRIMARY" ]]; then
-		export GIT_CACHE_SERVER="$GIT_CACHE_SERVER_PRIMARY"
-		info "cache miss - chain-cloning $uri into $gcdir through $GIT_CACHE_SERVER"
-		git-cclone "$uri" "$edir" --mirror >&2 || { rm -rf $gcdir; error "chain-cloning failure"; }
-                log "clone => cclone : $domain/${project%.git}"
+	# clone from a git-cache (chaining)
+        export GIT_CACHE_SERVER="$GIT_CACHE_SERVER_PRIMARY"
+        info "cache miss - chain-cloning $uri into $gcdir through $GIT_CACHE_SERVER"
+        git-cclone "$uri" "$edir" --mirror >&2 || { rm -rf $gcdir; error "chain-cloning failure"; }
+        log "clone => cclone : $domain/${project%.git}"
     else
-		info "cache miss - cloning $uri into $gcdir"
-		git clone --progress --mirror "$uri" "$edir" >&2 || { rm -rf $gcdir; error "cloning failure"; }
-                log "clone => clone : $domain/${project%.git}"
+	# direct clone
+        info "cache miss - cloning $uri into $gcdir"
+        git clone --progress --mirror "$uri" "$edir" >&2 || { rm -rf $gcdir; error "cloning failure"; }
+        log "clone => clone : $domain/${project%.git}"
     fi
 fi
 
 echo "$gcdir"
 exit 0
+
