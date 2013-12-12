@@ -51,7 +51,7 @@ if [[ "$1" != "--clone" ]]; then
     # remove the tags to fetch them (for syncing with deleted tags)
     git tag -l 2>/dev/null | xargs git tag -d >&/dev/null
     # fetch with prune (for syncing with deleted branches)
-    git fetch --prune --progress >&2
+    git fetch --prune --progress +refs/heads/*:refs/remotes/origin/* +refs/changes/*:refs/changes/* >&2
     log "fetch => fetch : $1"
     info uploading changes to client
     git-upload-pack .
@@ -103,7 +103,7 @@ if [[ -d $gcdir ]]; then
     # remove the tags to fetch them (for syncing with deleted tags)
     git tag -l 2>/dev/null | xargs git tag -d >&/dev/null
     # fetch with prune (for syncing with deleted branches)
-    git fetch --prune --progress >&2 || { rm -rf $gcdir; info "Fetching cached repo failed"; }
+    git fetch --prune --progress +refs/heads/*:refs/remotes/origin/* +refs/changes/*:refs/changes/* >&2 || { rm -rf $gcdir; info "Fetching cached repo failed"; }
     log "clone => fetch : $domain/${project%.git}"
 fi
 
