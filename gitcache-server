@@ -43,21 +43,29 @@ info() { echo "$*" >&2; }
 #####################################################
 # FETCHING (not cloning mean FETCHING)
 #####################################################
+arg2=$2
 if [[ "$1" != "--clone" ]]; then
     shift $(($# - 1))
     info using cache directory $1
-    cd "$1" 2>/dev/null || error "directory not found $1"
-    info refreshing cache from $(git ls-remote --get-url origin)
-    # remove the tags to fetch them (for syncing with deleted tags)
-    git tag -l 2>/dev/null | xargs git tag -d >&/dev/null
-    # fetch with prune (for syncing with deleted branches)
-    #git fetch --prune --progress origin +refs/heads/*:refs/remotes/origin/* +refs/changes/*:refs/changes/* >&2
-    git fetch --prune --progress >&2
-    log "fetch => fetch : $1"
-    info uploading changes to client
-    git-upload-pack .
-    log "fetch <= upload : $1"
-    exit
+    if [[ -d "$1" ]]; then
+        cd "$1" 2>/dev/null || error "directory not found $1"
+        info refreshing cache from $(git ls-remote --get-url origin)
+        # remove the tags to fetch them (for syncing with deleted tags)
+        git tag -l 2>/dev/null | xargs git tag -d >&/dev/null
+        # fetch with prune (for syncing with deleted branches)
+        #git fetch --prune --progress origin +refs/heads/*:refs/remotes/origin/* +refs/changes/*:refs/changes/* >&2
+        git fetch --prune --progress >&2
+        log "fetch => fetch : $1"
+        info uploading changes to client
+        git-upload-pack .
+        log "fetch <= upload : $1"
+        exit
+    else
+        # for any reason, the cache dir has disappeared
+        # rebuild url from directory to clone
+        arg2=$(sed -e "s|$GIT_CACHE_DIR/*||" -e 's|/|:|' <<<$1)
+	info "Cache directory is not present. Cloning from $arg2"
+    fi
 fi
 
 #####################################################
@@ -65,7 +73,7 @@ fi
 #####################################################
 
 # get the uri to clone
-uri=$(sed 's/ /%20/g' <<<$2)
+uri=$(sed 's/ /%20/g' <<<$arg2)
 info "clone request for $uri"
 
 # scan the domain and projet parts of the uri
