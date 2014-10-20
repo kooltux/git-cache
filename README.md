@@ -52,9 +52,9 @@ As user, put the scripts 'git-cclone', 'git-crecover' and
 For example:
 <pre>
 $ git clone https://github.com/kooltux/git-cache.git
-$ ln -s git-cache/git-cclone ~/bin/
-$ ln -s git-cache/git-crecover ~/bin
-$ ln -s git-cache/git-cadd ~/bin
+$ ln -s $(pwd)/git-cache/git-cclone ~/bin/
+$ ln -s $(pwd)/git-cache/git-crecover ~/bin
+$ ln -s $(pwd)/git-cache/git-cadd ~/bin
 </pre>
 
 Create the file (or copy git-cache/gitcache.conf) **~/.gitcache.conf** and edit it to put the 
