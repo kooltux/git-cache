@@ -4,9 +4,9 @@
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
 
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
 
     <title>Git-cache by kooltux</title>
   </head>
@@ -29,7 +29,7 @@
     <div class="container">
       <section id="main_content">
         <h1>
-<a name="git-cache" class="anchor" href="#git-cache"><span class="octicon octicon-link"></span></a>git-cache</h1>
+<a id="git-cache" class="anchor" href="#git-cache" aria-hidden="true"><span class="octicon octicon-link"></span></a>git-cache</h1>
 
 <p>Git extension to cache upstream repos on a local server</p>
 
@@ -55,7 +55,7 @@
 </pre>
 
 <h2>
-<a name="audience" class="anchor" href="#audience"><span class="octicon octicon-link"></span></a>Audience</h2>
+<a id="audience" class="anchor" href="#audience" aria-hidden="true"><span class="octicon octicon-link"></span></a>Audience</h2>
 
 <p>These scripts are for teams working on some git repositories
 staying on external sites. Using git-cache reduces significantly the external bandwith usage due to repeated fetchs.</p>
@@ -63,20 +63,24 @@ staying on external sites. Using git-cache reduces significantly the external ba
 <p>From the developer point of view, the cloned repository is usable transparently: pushes occur on the primary upstream server.</p>
 
 <h2>
-<a name="content" class="anchor" href="#content"><span class="octicon octicon-link"></span></a>Content</h2>
+<a id="content" class="anchor" href="#content" aria-hidden="true"><span class="octicon octicon-link"></span></a>Content</h2>
 
 <p>The solution comes with some scripts:</p>
 
 <ul>
 <li>'git-cclone', 'git-crecover' and 'git-cadd' to be installed on all clients</li>
 <li>'gitccache-server' to be installed on the cache server</li>
-</ul><p>And 2 examples of configuration files.</p>
+</ul>
+
+<p>And 2 examples of configuration files.</p>
 
 <ul>
 <li>'gitcache.conf' for clients</li>
 <li>'gitcache-server.conf' for servers</li>
-</ul><h2>
-<a name="installing-the-client-scripts" class="anchor" href="#installing-the-client-scripts"><span class="octicon octicon-link"></span></a>Installing the client scripts</h2>
+</ul>
+
+<h2>
+<a id="installing-the-client-scripts" class="anchor" href="#installing-the-client-scripts" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installing the client scripts</h2>
 
 <p>As user, put the scripts 'git-cclone', 'git-crecover' and
 'git-cadd' in your PATH.</p>
@@ -113,13 +117,13 @@ to be set.</p>
 or rc files (.profile or .bashrc or .zshrc or ....)</p>
 
 <h2>
-<a name="usage-on-the-client" class="anchor" href="#usage-on-the-client"><span class="octicon octicon-link"></span></a>Usage on the client</h2>
+<a id="usage-on-the-client" class="anchor" href="#usage-on-the-client" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage on the client</h2>
 
 <p>After installation, the client mainly have the command to clone git repositories
 through the cache. The standard clone is still available as usual.</p>
 
 <h3>
-<a name="git-cclone" class="anchor" href="#git-cclone"><span class="octicon octicon-link"></span></a>git-cclone</h3>
+<a id="git-cclone" class="anchor" href="#git-cclone" aria-hidden="true"><span class="octicon octicon-link"></span></a>git-cclone</h3>
 
 <p>To clone a directory use can use either the command 'git-cclone' or the command
 'git cclone'.</p>
@@ -135,7 +139,9 @@ through the cache. The standard clone is still available as usual.</p>
 (it will produce a creation or a fetch on server side);</li>
 <li>clone the cached git;</li>
 <li>configure the cloned project to push on original git server and to fetch on cache.</li>
-</ul><p>Example:</p>
+</ul>
+
+<p>Example:</p>
 
 <pre>
 $ git cclone git@github.com:kooltux/git-cache.git git-cache
@@ -152,7 +158,7 @@ it inserts a fetching cache for a repository that was cloned in a standard way <
 cache</strong>).</p>
 
 <h3>
-<a name="git-cadd" class="anchor" href="#git-cadd"><span class="octicon octicon-link"></span></a>git-cadd</h3>
+<a id="git-cadd" class="anchor" href="#git-cadd" aria-hidden="true"><span class="octicon octicon-link"></span></a>git-cadd</h3>
 
 <p>It is sometimes interesting to add remote repositories to your current
 repository with the command 'git remote add'. The command 'git-cadd'
@@ -163,7 +169,7 @@ cache for the added remote. It accepts exactly the same arguments that
 <p>Usage: <strong>git cadd [options...] name repository</strong></p>
 
 <h3>
-<a name="git-crecover" class="anchor" href="#git-crecover"><span class="octicon octicon-link"></span></a>git-crecover</h3>
+<a id="git-crecover" class="anchor" href="#git-crecover" aria-hidden="true"><span class="octicon octicon-link"></span></a>git-crecover</h3>
 
 <p>'git-crecover' is interactive unless called with options. </p>
 
@@ -189,7 +195,7 @@ for the optionnaly given remote without any prompting.</p>
 for the optionnaly given remote without any prompting.</p>
 
 <h2>
-<a name="installation-of-the-cache-server" class="anchor" href="#installation-of-the-cache-server"><span class="octicon octicon-link"></span></a>Installation of the cache server</h2>
+<a id="installation-of-the-cache-server" class="anchor" href="#installation-of-the-cache-server" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation of the cache server</h2>
 
 <p>Choose the machine and the account that will be used to store cached repositories
 and run the server script.</p>
@@ -210,8 +216,10 @@ $ cp git-cache/gitcache-server.conf ~/.gitcache-server.conf
 <li>GIT_CACHE_DIR : the cache directory where all git repos will be stored</li>
 <li>GIT_CACHE_SERVER_PRIMARY : (optional) primary cache server for chaining</li>
 <li>GIT_CACHE_LOG : (optional) a log file for gitcache-server activity</li>
-</ul><h2>
-<a name="using-cache-standalone-without-server" class="anchor" href="#using-cache-standalone-without-server"><span class="octicon octicon-link"></span></a>Using cache standalone (without server)</h2>
+</ul>
+
+<h2>
+<a id="using-cache-standalone-without-server" class="anchor" href="#using-cache-standalone-without-server" aria-hidden="true"><span class="octicon octicon-link"></span></a>Using cache standalone (without server)</h2>
 
 <p>Into your account, you can put the client AND the server too. The server will still be 
 accessed with ssh. Here below the examples of configuring your <strong>.profile</strong> or <strong>.bashrc</strong>:</p>
@@ -222,7 +230,7 @@ GIT_CACHE_DIR=~/.gitcachedir
 </pre>
 
 <h2>
-<a name="chaining-caches" class="anchor" href="#chaining-caches"><span class="octicon octicon-link"></span></a>Chaining caches</h2>
+<a id="chaining-caches" class="anchor" href="#chaining-caches" aria-hidden="true"><span class="octicon octicon-link"></span></a>Chaining caches</h2>
 
 <p>Using the GIT_CACHE_SERVER_PRIMARY variable, it's possible to chain caches.</p>
 
@@ -275,13 +283,13 @@ GIT_CACHE_DIR=~/.gitcachedir
 </pre>
 
 <h2>
-<a name="security" class="anchor" href="#security"><span class="octicon octicon-link"></span></a>Security</h2>
+<a id="security" class="anchor" href="#security" aria-hidden="true"><span class="octicon octicon-link"></span></a>Security</h2>
 
 <p>As for any client of SSH, you should be aware of the security holes of ssh.
 Please refer to a good lesson about it.</p>
 
 <h2>
-<a name="faq" class="anchor" href="#faq"><span class="octicon octicon-link"></span></a>FAQ</h2>
+<a id="faq" class="anchor" href="#faq" aria-hidden="true"><span class="octicon octicon-link"></span></a>FAQ</h2>
 
 <p><em><em>Q:</em></em> And for Windows?</p>
 
